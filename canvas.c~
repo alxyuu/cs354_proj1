@@ -407,7 +407,6 @@ void myKeyHandler(unsigned char ch, int x, int y) {
 			if(vr_object >= VR_MAX) {
 				vr_object = 0;
 			}
-			print_vrml_object();
 			break;
 
 		/*********************************************/

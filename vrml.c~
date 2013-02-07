@@ -202,24 +202,7 @@ void draw_vrml_icosahedron(void){
 void draw_vrml_pyramid(void){
 	draw_vrml_object(v_pyramid_indices, v_pyramid_vertices, sizeof(v_pyramid_indices)/sizeof(GLint));
 }
-void print_vrml_object(void){
-	switch(vr_object) {
-		case VR_CUBE:
-			printf("drawing cube\n");
-			break;
-		case VR_DODECAHEDRON:
-			printf("drawing dodecahedron\n");
-			break;
-		case VR_ICOSAHEDRON:
-			printf("drawing icosahedron\n");
-			break;
-		case VR_PYRAMID:
-			printf("drawing pyramid\n");
-			break;
-		default:
-			return;
-	}
-}
+void print_vrml_object(void);
 
 
 /* end of vrml.c */
