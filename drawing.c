@@ -24,6 +24,8 @@ int disp_mode;
 /* The current display style */
 int disp_style;
 
+extern int vr_object;
+
 /***********************************************************
  * Begin Cube Data
  ***********************************************************/
@@ -349,6 +351,22 @@ void draw_cone_tri_calc(double height, double radius, int base_tri) {
 void draw_vrml(void) {
 	/* ADD YOUR CODE HERE */
 	/* NOTE: you should be calling a function or functions in vrml.c */
+	switch(vr_object) {
+		case VR_CUBE:
+			draw_vrml_cube();
+			break;
+		case VR_DODECAHEDRON:
+			draw_vrml_dodecahedron();
+			break;
+		case VR_ICOSAHEDRON:
+			draw_vrml_icosahedron();
+			break;
+		case VR_PYRAMID:
+			draw_vrml_pyramid();
+			break;
+		default:
+			return;
+	}
 
 }
 

@@ -378,36 +378,36 @@ void myKeyHandler(unsigned char ch, int x, int y) {
 
 		case 'p':
 			cone_tri++;
-			myDisplay();
 			break;
 
 		case 'P':
 			if(cone_tri > 3) {
 				cone_tri--;
 			}
-			myDisplay();
 			break;
 
 		case 'i':
 			cone_radius += 0.1;
-			myDisplay();
 			break;
 
 		case 'I':
 			if(cone_radius > 0.1) cone_radius -= 0.1;
-			myDisplay();
 			break;
 
 		case 'o':
 			cone_height += 0.1;
-			myDisplay();
 			break;
 
 		case 'O':
 			if(cone_height > 0.1) cone_height -= 0.1;
-			myDisplay();
 			break;
 
+		case 'v':
+			vr_object++;
+			if(vr_object >= VR_MAX) {
+				vr_object = 0;
+			}
+			break;
 
 		/*********************************************/
 		/* ADD ADDITIONAL KEYS HERE                  */
