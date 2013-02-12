@@ -73,6 +73,15 @@ GLfloat cube_colors[] = {
  * appear in counterclockwise order).
  */
 GLuint cube_indices[] = {
+    0, 2, 3, 1,
+    2, 6, 7, 3,
+    7, 6, 4, 5,
+    4, 0, 1, 5,
+    1, 3, 7, 5,
+    0, 4, 6, 2,
+};
+
+GLuint hypercube_indices[] = {
     0, 1, 3, 2,
     2, 6, 7, 3,
     4, 5, 7, 6,
@@ -80,6 +89,7 @@ GLuint cube_indices[] = {
     1, 3, 7, 5,
     0, 2, 6, 4,
 };
+
 /***********************************************************
  * End Cube Data
  ***********************************************************/
@@ -153,6 +163,7 @@ GLuint cone_indices[] = {
  * End Cone Data
  ***********************************************************/
 
+GLfloat origin[] = { 0.0f, 0.0f, 0.0f };
 
 /* Uses glut to draw a cube */
 void draw_cube_glut(void) {
@@ -372,6 +383,38 @@ void draw_vrml(void) {
 
 }
 
+GLfloat vector_dis(GLfloat start[3], GLfloat end[3]) {
+	return sqrt((start[0] - end[0])*(start[0] - end[0]) + (start[1] - end[1])*(start[1] - end[1]) + (start[2] - end[2])*(start[2] - end[2]));
+}
+
+void draw_rod(GLUquadricObj* quad, GLfloat *start, GLfloat start_scale, GLfloat *end, GLfloat end_scale) {
+	GLfloat scaled_start[] = { start[0] * start_scale, start[1] * start_scale, start[2] * start_scale };
+	GLfloat scaled_end[] = { end[0] * end_scale, end[1] * end_scale, end[2] * end_scale };
+	GLfloat diff_vector[] = {scaled_end[0] - scaled_start[0], scaled_end[1] - scaled_start[1], scaled_end[2] - scaled_start[2] };
+
+	glPushMatrix();
+	GLfloat dist = vector_dis(scaled_start, scaled_end);
+	if(diff_vector[2] < 0.0f && diff_vector[0] == 0.0f && diff_vector[1] == 0.0f) {
+		glTranslated(scaled_start[0], scaled_start[1], scaled_start[2] - dist);
+	} else if (diff_vector[2] > 0.0f) {
+		glTranslated(scaled_start[0], scaled_start[1], scaled_start[2]);
+	} else {
+		glTranslated(scaled_end[0], scaled_end[1], scaled_end[2]);
+	}
+	
+
+	GLfloat crossX = diff_vector[1]/dist;
+	GLfloat crossY = -diff_vector[0]/dist;
+	GLfloat angle = asin(sqrt(crossX*crossX + crossY*crossY)) * 180/3.14159265;
+	if(diff_vector[2] > 0.0f && !(diff_vector[0] == 0.0f && diff_vector[1] == 0.0f)) {
+		angle = -angle;
+	}
+
+	glRotatef(angle, crossX, crossY, 0.0f);
+
+	gluCylinder(quad, 0.02f, 0.02f, dist, 20, 1);
+	glPopMatrix();
+}
 
 /* Draws a freeform scene */
 void draw_free_scene(void) {
@@ -379,21 +422,36 @@ void draw_free_scene(void) {
 	int i;
 	int index1, index2, index3, index4;
 
-	num_indices = sizeof(cube_indices) / sizeof(GLuint);
+	num_indices = sizeof(hypercube_indices) / sizeof(GLuint);
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable (GL_LINE_SMOOTH);
+	glDepthMask(GL_FALSE);
+
+	GLUquadricObj *quad = gluNewQuadric();
 
 	for (i = 0; i < num_indices; i += 4) {
 
-		index1 = cube_indices[i] * 3;
-		index2 = cube_indices[i+1] * 3;
-		index3 = cube_indices[i+2] * 3;
-		index4 = cube_indices[i+3] * 3;
+		index1 = hypercube_indices[i] * 3;
+		index2 = hypercube_indices[i+1] * 3;
+		index3 = hypercube_indices[i+2] * 3;
+		index4 = hypercube_indices[i+3] * 3;
+
+		glColor3f( 0.73333333333f, 0.82352941176f, 0.85490196078f);
+
+		draw_rod(quad, &(cube_vertices[index1]), inside, &(cube_vertices[index2]), inside);
+		draw_rod(quad, &(cube_vertices[index3]), inside, &(cube_vertices[index4]), inside);
+
+		draw_rod(quad, &(cube_vertices[index1]), inside, &(cube_vertices[index1]), outside);
+		draw_rod(quad, &(cube_vertices[index2]), inside, &(cube_vertices[index2]), outside);
+
+		draw_rod(quad, &(cube_vertices[index1]), outside, &(cube_vertices[index2]), outside);
+		draw_rod(quad, &(cube_vertices[index3]), outside, &(cube_vertices[index4]), outside);
+
+		draw_rod(quad, &(cube_vertices[index3]), inside, &(cube_vertices[index3]), outside);
+		draw_rod(quad, &(cube_vertices[index4]), inside, &(cube_vertices[index4]), outside);
 
 		glBegin(GL_QUADS);
-		glColor4f( 0.0f, 0.0f, 1.0f, 0.7f );
-
+		glColor4f( 0.82352941176f, 0.82352941176f, 0.82352941176f, 0.4f );
 		glVertex3f( inside*cube_vertices[index1], inside*cube_vertices[index1+1], inside*cube_vertices[index1+2] );
 		glVertex3f( inside*cube_vertices[index2], inside*cube_vertices[index2+1], inside*cube_vertices[index2+2] );
 		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
@@ -404,29 +462,6 @@ void draw_free_scene(void) {
 		glVertex3f( outside*cube_vertices[index2], outside*cube_vertices[index2+1], outside*cube_vertices[index2+2] );
 		glVertex3f( outside*cube_vertices[index1], outside*cube_vertices[index1+1], outside*cube_vertices[index1+2] );
 
-		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
-		glVertex3f( inside*cube_vertices[index4], inside*cube_vertices[index4+1], inside*cube_vertices[index4+2] );
-		glVertex3f( outside*cube_vertices[index4], outside*cube_vertices[index4+1], outside*cube_vertices[index4+2] );
-		glVertex3f( outside*cube_vertices[index3], outside*cube_vertices[index3+1], outside*cube_vertices[index3+2] );
-		glEnd();
-
-		glColor3f( 0.0f, 0.0f, 0.0f );
-		//glLineWidth(2.0f);
-		glBegin(GL_LINE_LOOP);
-		glVertex3f( inside*cube_vertices[index1], inside*cube_vertices[index1+1], inside*cube_vertices[index1+2] );
-		glVertex3f( inside*cube_vertices[index2], inside*cube_vertices[index2+1], inside*cube_vertices[index2+2] );
-		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
-		glVertex3f( inside*cube_vertices[index4], inside*cube_vertices[index4+1], inside*cube_vertices[index4+2] );
-		glEnd();
-
-		glBegin(GL_LINE_LOOP);
-		glVertex3f( inside*cube_vertices[index1], inside*cube_vertices[index1+1], inside*cube_vertices[index1+2] );
-		glVertex3f( inside*cube_vertices[index2], inside*cube_vertices[index2+1], inside*cube_vertices[index2+2] );
-		glVertex3f( outside*cube_vertices[index2], outside*cube_vertices[index2+1], outside*cube_vertices[index2+2] );
-		glVertex3f( outside*cube_vertices[index1], outside*cube_vertices[index1+1], outside*cube_vertices[index1+2] );
-		glEnd();
-
-		glBegin(GL_LINE_LOOP);
 		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
 		glVertex3f( inside*cube_vertices[index4], inside*cube_vertices[index4+1], inside*cube_vertices[index4+2] );
 		glVertex3f( outside*cube_vertices[index4], outside*cube_vertices[index4+1], outside*cube_vertices[index4+2] );
@@ -434,30 +469,6 @@ void draw_free_scene(void) {
 		glEnd();
 
 	}
-
-/*	GLUquadricObj *quad = gluNewQuadric();
-	glColor3f(1.0f,0.0f, 0.0f);
-	glTranslated(inside/2, inside/2, -inside/2);
-	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);
-
-
-	quad = gluNewQuadric();
-	glColor3f(1.0f,0.0f, 0.0f);
-	glTranslated(-inside/2, inside/2, -inside/2);
-	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);
-
-
-	quad = gluNewQuadric();
-	glColor3f(1.0f,0.0f, 0.0f);
-	glRotatef(90.f, 0.0f, 0.0f, 0.0f);   
-	glTranslated(inside/2, inside/2, -inside/2);
-	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);
-
-	quad = gluNewQuadric();
-	glColor3f(1.0f,0.0f, 0.0f);
-	glRotatef(90.f, 0.0f, 0.0f, 0.0f);   
-	glTranslated(-inside/2, inside/2, -inside/2);
-	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);*/
 }
 
 
