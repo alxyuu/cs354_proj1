@@ -25,6 +25,8 @@ int disp_mode;
 int disp_style;
 
 extern int vr_object;
+extern GLfloat inside;
+extern GLfloat outside;
 
 /***********************************************************
  * Begin Cube Data
@@ -71,12 +73,12 @@ GLfloat cube_colors[] = {
  * appear in counterclockwise order).
  */
 GLuint cube_indices[] = {
-    0, 2, 3, 1,
+    0, 1, 3, 2,
     2, 6, 7, 3,
-    7, 6, 4, 5,
+    4, 5, 7, 6,
     4, 0, 1, 5,
     1, 3, 7, 5,
-    0, 4, 6, 2,
+    0, 2, 6, 4,
 };
 /***********************************************************
  * End Cube Data
@@ -373,31 +375,89 @@ void draw_vrml(void) {
 
 /* Draws a freeform scene */
 void draw_free_scene(void) {
-	/* ADD YOUR CODE HERE */
-	/* NOTE: Modify or remove the existing code in this func, as necessary */
+	int num_indices;
+	int i;
+	int index1, index2, index3, index4;
 
-	/*
-	 * Draw a red torus.
-	 *
-	 * glutWireTorus args: (inner radius, outer radius,
-	 * sides per radial section, # of radial sections)
-	 */
-	glColor3f(1.0f, 0.0f, 0.0f);		/* red */
-	glutWireTorus(0.1, 0.4, 10, 20);
+	num_indices = sizeof(cube_indices) / sizeof(GLuint);
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable (GL_LINE_SMOOTH);
 
-	/*
-	 * Draw a green cube at an offset of (0, 1, 0) from the center of
-	 * the torus.  Note that the glPushMatrix remembers the current
-	 * drawing position (the center of the torus), the glTranslatef
-	 * translates the drawing point by and offset, and the
-	 * glPopMatrix restores the drawing point to the center of
-	 * the torus.
-	 */
-	glPushMatrix();
-	glTranslatef(1.0f, 0.0f, 1.0f);		/* the drawing offset */
-	glColor3f(0.0f, 1.0f, 0.0f);		/* green */
-	glutWireCube(1.0f);
-	glPopMatrix();
+	for (i = 0; i < num_indices; i += 4) {
+
+		index1 = cube_indices[i] * 3;
+		index2 = cube_indices[i+1] * 3;
+		index3 = cube_indices[i+2] * 3;
+		index4 = cube_indices[i+3] * 3;
+
+		glBegin(GL_QUADS);
+		glColor4f( 0.0f, 0.0f, 1.0f, 0.7f );
+
+		glVertex3f( inside*cube_vertices[index1], inside*cube_vertices[index1+1], inside*cube_vertices[index1+2] );
+		glVertex3f( inside*cube_vertices[index2], inside*cube_vertices[index2+1], inside*cube_vertices[index2+2] );
+		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
+		glVertex3f( inside*cube_vertices[index4], inside*cube_vertices[index4+1], inside*cube_vertices[index4+2] );
+
+		glVertex3f( inside*cube_vertices[index1], inside*cube_vertices[index1+1], inside*cube_vertices[index1+2] );
+		glVertex3f( inside*cube_vertices[index2], inside*cube_vertices[index2+1], inside*cube_vertices[index2+2] );
+		glVertex3f( outside*cube_vertices[index2], outside*cube_vertices[index2+1], outside*cube_vertices[index2+2] );
+		glVertex3f( outside*cube_vertices[index1], outside*cube_vertices[index1+1], outside*cube_vertices[index1+2] );
+
+		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
+		glVertex3f( inside*cube_vertices[index4], inside*cube_vertices[index4+1], inside*cube_vertices[index4+2] );
+		glVertex3f( outside*cube_vertices[index4], outside*cube_vertices[index4+1], outside*cube_vertices[index4+2] );
+		glVertex3f( outside*cube_vertices[index3], outside*cube_vertices[index3+1], outside*cube_vertices[index3+2] );
+		glEnd();
+
+		glColor3f( 0.0f, 0.0f, 0.0f );
+		//glLineWidth(2.0f);
+		glBegin(GL_LINE_LOOP);
+		glVertex3f( inside*cube_vertices[index1], inside*cube_vertices[index1+1], inside*cube_vertices[index1+2] );
+		glVertex3f( inside*cube_vertices[index2], inside*cube_vertices[index2+1], inside*cube_vertices[index2+2] );
+		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
+		glVertex3f( inside*cube_vertices[index4], inside*cube_vertices[index4+1], inside*cube_vertices[index4+2] );
+		glEnd();
+
+		glBegin(GL_LINE_LOOP);
+		glVertex3f( inside*cube_vertices[index1], inside*cube_vertices[index1+1], inside*cube_vertices[index1+2] );
+		glVertex3f( inside*cube_vertices[index2], inside*cube_vertices[index2+1], inside*cube_vertices[index2+2] );
+		glVertex3f( outside*cube_vertices[index2], outside*cube_vertices[index2+1], outside*cube_vertices[index2+2] );
+		glVertex3f( outside*cube_vertices[index1], outside*cube_vertices[index1+1], outside*cube_vertices[index1+2] );
+		glEnd();
+
+		glBegin(GL_LINE_LOOP);
+		glVertex3f( inside*cube_vertices[index3], inside*cube_vertices[index3+1], inside*cube_vertices[index3+2] );
+		glVertex3f( inside*cube_vertices[index4], inside*cube_vertices[index4+1], inside*cube_vertices[index4+2] );
+		glVertex3f( outside*cube_vertices[index4], outside*cube_vertices[index4+1], outside*cube_vertices[index4+2] );
+		glVertex3f( outside*cube_vertices[index3], outside*cube_vertices[index3+1], outside*cube_vertices[index3+2] );
+		glEnd();
+
+	}
+
+/*	GLUquadricObj *quad = gluNewQuadric();
+	glColor3f(1.0f,0.0f, 0.0f);
+	glTranslated(inside/2, inside/2, -inside/2);
+	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);
+
+
+	quad = gluNewQuadric();
+	glColor3f(1.0f,0.0f, 0.0f);
+	glTranslated(-inside/2, inside/2, -inside/2);
+	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);
+
+
+	quad = gluNewQuadric();
+	glColor3f(1.0f,0.0f, 0.0f);
+	glRotatef(90.f, 0.0f, 0.0f, 0.0f);   
+	glTranslated(inside/2, inside/2, -inside/2);
+	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);
+
+	quad = gluNewQuadric();
+	glColor3f(1.0f,0.0f, 0.0f);
+	glRotatef(90.f, 0.0f, 0.0f, 0.0f);   
+	glTranslated(-inside/2, inside/2, -inside/2);
+	gluCylinder(quad, 0.02f, 0.02f, inside, 10, 10);*/
 }
 
 

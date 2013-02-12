@@ -65,6 +65,10 @@ double cone_radius = 1.0;
 int    cone_tri    = 8;
 
 
+GLfloat inside   = 1.0f;
+GLfloat outside  = 1.5f;
+
+
 /* Constants for specifying the 3 coordinate axes */
 #define X_AXIS			0
 #define Y_AXIS			1
@@ -407,6 +411,23 @@ void myKeyHandler(unsigned char ch, int x, int y) {
 			if(vr_object >= VR_MAX) {
 				vr_object = 0;
 			}
+			print_vrml_object();
+			break;
+
+		case '7':
+			if(outside > inside + 0.1f && outside > 0.2f)
+				outside -= 0.1f;
+			break;
+		case '9':
+			outside += 0.1f;
+			break;
+		case '1':
+			if(inside > 0.1f)
+				inside -= 0.1f;
+			break;
+		case '3':
+			if(inside < outside - 0.1f)
+				inside += 0.1f;
 			break;
 
 		/*********************************************/
